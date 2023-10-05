@@ -1,6 +1,10 @@
 import { Box, Button, Center } from '@chakra-ui/react';
 
-export const GoogleLoginButton = function () {
+interface Props {
+  onClick: () => void;
+}
+
+export const GoogleLoginButton = function ({ onClick }: Props) {
   return (
     <Box>
       <Center>
@@ -20,6 +24,7 @@ export const GoogleLoginButton = function () {
               style={{ backgroundColor: 'white', padding: '5px', borderRadius: '50%' }}
             />
           }
+          onClick={onClick}
         >
           Google 계정으로 시작하기
         </Button>
