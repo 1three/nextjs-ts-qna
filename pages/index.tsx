@@ -1,14 +1,14 @@
 import { NextPage } from 'next';
 import { Box, Center, Flex, Heading } from '@chakra-ui/react';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { ServiceLayout } from '@/components/service_layout';
 import { GoogleLoginButton } from '@/components/google_login_button';
-import FirebaseClient from '@/models/firebase_client';
-
-// Firebase의 GoogleAuthProvider 사용
-const provider = new GoogleAuthProvider();
+import { useAuth } from '@/context/auth_user.context';
 
 const IndexPage: NextPage = function () {
+  // useAuth 훅을 사용하여 로그인 상태 및 관련 함수를 가져옴
+  const { signInWithGoogle, authUser } = useAuth();
+  console.info(authUser);
+
   return (
     <ServiceLayout title="Shhh">
       <Box maxW="md" mx="auto">
@@ -20,18 +20,7 @@ const IndexPage: NextPage = function () {
 
       {/* 구글 로그인 버튼 */}
       <Center mt="20">
-        <GoogleLoginButton
-          onClick={() => {
-            // FirebaseClient를 사용하여 Firebase Auth에 구글 로그인 팝업으로 로그인 시도
-            signInWithPopup(FirebaseClient.getInstance().Auth, provider)
-              .then((result) => {
-                console.info(result.user);
-              })
-              .catch((error) => {
-                console.error(error);
-              });
-          }}
-        />
+        <GoogleLoginButton onClick={signInWithGoogle} />
       </Center>
     </ServiceLayout>
   );
