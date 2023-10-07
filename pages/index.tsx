@@ -10,8 +10,8 @@ const IndexPage: NextPage = function () {
   console.info(authUser);
 
   return (
-    <ServiceLayout title="Shhh">
-      <Box maxW="md" mx="auto">
+    <ServiceLayout title="Shhh" minH="100vh" bg="gray.100">
+      <Box maxW="md" mx="auto" pt="10">
         <img src="/main_logo.svg" alt="메인 로고" />
         <Flex justify="center">
           <Heading>#Shhh</Heading>
