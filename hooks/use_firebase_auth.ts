@@ -23,10 +23,26 @@ export default function useFirebaseAuth() {
       // 로그인 성공 시
       if (signInResult.user) {
         console.info(signInResult.user);
+        const resp = await fetch('/api/member.add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            uid: signInResult.user.uid,
+            email: signInResult.user.email,
+            displayName: signInResult.user.displayName,
+            photoURL: signInResult.user.photoURL,
+          }),
+        });
+        console.info({ status: resp.status });
+
+        const respData = await resp.json();
+        console.info(respData);
       }
-    } catch (error) {
+    } catch (err) {
       // 로그인 실패 시
-      console.error(error);
+      console.error(err);
     }
   }
   /**
