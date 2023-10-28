@@ -54,7 +54,7 @@ export default class FirebaseAdmin {
   }
 
   /** Firestore 인스턴스를 반환하는 메서드 */
-  public get Firebase(): FirebaseFirestore.Firestore {
+  public get Firestore(): FirebaseFirestore.Firestore {
     // FirebaseAdmin이 초기화되지 않은 경우 초기화 메서드 호출
     if (this.init === false) {
       this.bootstrap();
