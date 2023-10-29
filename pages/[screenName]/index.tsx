@@ -26,6 +26,14 @@ interface Props {
   userInfo: InAuthUser | null;
 }
 
+/**
+ * 비동기 함수 : 메시지 등록
+ *
+ * @param uid - 사용자 식별자
+ * @param message - 등록할 메시지 내용
+ * @param author - 메시지 작성자 정보
+ * @returns 등록 결과를 담은 Promise 객체
+ */
 async function postMessage({
   uid,
   message,
@@ -38,13 +46,16 @@ async function postMessage({
     photoURL?: string;
   };
 }) {
+  // 빈 메시지인 경우 에러 반환
   if (message.length <= 0) {
     return {
       result: false,
       message: '메시지를 입력해주세요.',
     };
   }
+
   try {
+    // 서버로 메시지 등록 요청
     await fetch('/api/messages.add', {
       method: 'post',
       headers: {
@@ -52,10 +63,13 @@ async function postMessage({
       },
       body: JSON.stringify({ uid, message, author }),
     });
+
+    // 성공 결과 반환
     return {
       result: true,
     };
   } catch (err) {
+    // 실패한 경우 에러 로깅 및 실패 결과 반환
     console.error(err);
     return {
       result: false,
@@ -64,32 +78,53 @@ async function postMessage({
   }
 }
 
+/**
+ * 사용자 홈 페이지 컴포넌트
+ */
 const UserHomePage: NextPage<Props> = function ({ userInfo }) {
   // 사용자 질문 저장하는 상태
   const [message, setMessage] = useState('');
   // 익명 여부를 나타내는 상태
   const [anonymous, setAnonymous] = useState(true);
+  // 현재 페이지 번호를 나타내는 상태
   const [page, setPage] = useState(1);
-  const [totalPage, setTotalPages] = useState(1);
+  // 전체 페이지 수를 나타내는 상태
+  const [totalPages, setTotalPages] = useState(1);
+  // 메시지 목록을 저장하는 상태
   const [messageList, setMessageList] = useState<InMessage[]>([]);
+  // 메시지 목록을 갱신하는 트리거 상태
   const [messageListFetchTrigger, setMessageListFetchTrigger] = useState(false);
   // Chakra UI의 Toast 컴포넌트 사용을 위한 훅
   const toast = useToast();
   // 사용자 인증 정보를 가져오는 컨텍스트 훅
   const { authUser } = useAuth();
 
+  /**
+   * 비동기 함수 : 메시지 정보 가져오기
+   *
+   * @param uid - 사용자 식별자
+   * @param messageId - 메시지 식별자
+   */
   async function fetchMessageInfo({ uid, messageId }: { uid: string; messageId: string }) {
     try {
+      // 서버로부터 메시지 정보 요청
       const resp = await fetch(`/api/messages.info?uid=${uid}&messageId=${messageId}`);
+
+      // 요청 성공 시, 메시지 목록 업데이트
       if (resp.status === 200) {
         const data = await resp.json();
         setMessageList((prev) => {
+          // 이전 메시지 목록에서 현재 메시지의 인덱스 찾기
           const findIndex = prev.findIndex((fv) => fv.id === data.id);
+
+          // 메시지가 이미 목록에 있는 경우, 해당 메시지를 업데이트
           if (findIndex >= 0) {
             const updateArr = [...prev];
             updateArr[findIndex] = data;
             return updateArr;
           }
+
+          // 메시지가 목록에 없는 경우, 이전 목록 그대로 반환
           return prev;
         });
       }
@@ -98,7 +133,10 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
     }
   }
 
+  // 메시지 목록을 갱신하는데 사용되는 쿼리의 키 값
   const messageListQueryKey = ['messageList', userInfo?.uid, page, messageListFetchTrigger];
+
+  // react-query를 사용하여 메시지 목록을 가져오는 쿼리 훅
   useQuery(
     messageListQueryKey,
     async () =>
@@ -113,6 +151,7 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
       keepPreviousData: true,
       refetchOnWindowFocus: false,
       onSuccess: (data) => {
+        // 페이징 정보 설정 및 첫 페이지인 경우 목록 전체 갱신, 그렇지 않으면 이전 목록에 추가
         setTotalPages(data.data.totalPages);
         if (page === 1) {
           setMessageList([...data.data.content]);
@@ -123,10 +162,12 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
     },
   );
 
+  // 사용자 정보 부재 시, 에러 메시지 출력
   if (userInfo === null) {
     return <p>사용자를 찾을 수 없습니다.</p>;
   }
 
+  // 현재 사용자가 홈(메시지)의 소유자인지 여부 확인
   const isOwner = authUser !== null && authUser.uid === userInfo.uid;
 
   return (
@@ -142,6 +183,7 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
             </Flex>
           </Flex>
         </Box>
+
         {/* 질문 작성 영역 */}
         <Box borderWidth="1px" borderRadius="lg" overflow="hidden" mb="2" bg="white">
           <Flex align="center" padding="2">
@@ -251,7 +293,7 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
             />
           ))}
         </VStack>
-        {totalPage > page && (
+        {totalPages > page && (
           <Button
             width="full"
             mt="2"
@@ -268,6 +310,12 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
   );
 };
 
+/**
+ * 서버 측에서 실행되는 초기 데이터 로딩을 위한 getServerSideProps 함수
+ *
+ * @param query - Next.js의 query 객체
+ * @returns 초기 데이터를 포함한 Props 객체
+ */
 export const getServerSideProps: GetServerSideProps<Props> = async ({ query }) => {
   const { screenName } = query;
 

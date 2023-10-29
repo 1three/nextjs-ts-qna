@@ -1,3 +1,6 @@
+/**
+ * 사용자 정의 서버 오류를 처리하기 위한 클래스
+ */
 export default class CustomServerError extends Error {
   public statusCode: number;
 

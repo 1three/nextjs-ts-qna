@@ -5,6 +5,7 @@ import FirebaseClient from '@/models/firebase_client';
 
 /**
  * Firebase 인증을 다루기 위한 커스텀 훅
+ *
  * @returns {Object} 사용자 정보와 로딩 상태, 로그인 및 로그아웃 함수를 포함한 객체
  */
 export default function useFirebaseAuth() {
@@ -14,6 +15,7 @@ export default function useFirebaseAuth() {
 
   /**
    * Google 로그인 함수
+   *
    * @returns {Promise<void>} 로그인 결과를 처리하는 Promise
    */
   async function signInWithGoogle(): Promise<void> {

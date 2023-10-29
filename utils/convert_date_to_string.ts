@@ -1,11 +1,18 @@
 import moment from 'moment';
 
+/**
+ * ISO 8601 형식의 날짜 문자열을 받아와, 현재 시간과의 차이를 문자열로 변환하는 함수
+ *
+ * @param {string} dateString - ISO 8601 형식의 날짜 문자열
+ * @returns {string} - 현재 시간과의 차이를 나타내는 문자열
+ */
 function convertDateToString(dateString: string): string {
   const dateTime = moment(dateString, moment.ISO_8601).milliseconds(0);
   const now = moment();
 
   const diff = now.diff(dateTime);
   const calDuration = moment.duration(diff);
+
   const years = calDuration.years();
   const months = calDuration.months();
   const days = calDuration.days();

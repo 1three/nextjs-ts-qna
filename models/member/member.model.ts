@@ -1,6 +1,7 @@
 import FirebaseAdmin from '../firebase_admin';
 import { InAuthUser } from '../in_auth_user';
 
+// Firestore의 컬렉션 이름 상수화
 const MEMBER_COL = 'members';
 const SCR_NAME_COL = 'screen_names';
 
@@ -8,6 +9,7 @@ type AddResult = { result: true; id: string } | { result: false; message: string
 
 /**
  * 사용자를 Firestore에 추가하는 함수
+ *
  * @param {InAuthUser} param0 사용자 정보
  * @returns {Promise<AddResult>} 추가 결과
  */
@@ -55,14 +57,22 @@ async function add({ uid, email, displayName, photoURL }: InAuthUser): Promise<A
   }
 }
 
+/**
+ * screenName으로 사용자를 조회하는 함수
+ *
+ * @param {string} screenName 조회할 사용자의 screenName
+ * @returns {Promise<InAuthUser | null>} 조회된 사용자 정보
+ */
 async function findByScreenName(screenName: string): Promise<InAuthUser | null> {
   const memberRef = FirebaseAdmin.getInstance().Firestore.collection(SCR_NAME_COL).doc(screenName);
   const memberDoc = await memberRef.get();
 
+  // 조회된 사용자가 없는 경우
   if (memberDoc.exists === false) {
     return null;
   }
 
+  // 조회된 사용자 정보 반환
   const data = memberDoc.data() as InAuthUser;
   return data;
 }

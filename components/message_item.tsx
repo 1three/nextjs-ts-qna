@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { InMessage } from '@/models/message/in_message';
 import convertDateToString from '@/utils/convert_date_to_string';
 
+// MessageItem 컴포넌트의 속성을 정의하는 인터페이스
 interface Props {
   uid: string;
   displayName: string;
@@ -13,22 +14,30 @@ interface Props {
   onSendComplete: () => void;
 }
 
+// 각 메시지 아이템을 렌더링하는 컴포넌트
 const MessageItem = function ({ uid, displayName, photoURL, isOwner, item, onSendComplete }: Props) {
+  // 댓글 작성 상태 관리하는 상태 변수
   const [reply, setReply] = useState('');
+  // 댓글 유무 확인
   const haveReply = item.reply !== undefined;
 
+  // 댓글 등록 함수
   async function postReply() {
     const resp = await fetch('/api/messages.add.reply', {
       method: 'POST',
       headers: { 'Content-type': 'application/json' },
       body: JSON.stringify({ uid, messageId: item.id, reply }),
     });
+
+    // 응답 성공 시, 부모 컴포넌트에 등록 완료 알림
     if (resp.status < 300) {
       onSendComplete();
     }
   }
+
   return (
     <Box borderRadius="md" width="full" bg="white" boxShadow="md">
+      {/* 메시지 작성자 정보 영역 */}
       <Box>
         <Flex pl="2" pt="2" alignItems="center">
           <Avatar
@@ -44,11 +53,13 @@ const MessageItem = function ({ uid, displayName, photoURL, isOwner, item, onSen
         </Flex>
       </Box>
       <Box p="2">
+        {/* 메시지 내용 영역 */}
         <Box borderRadius="md" borderWidth="1px" p="3">
           <Text whiteSpace="pre-line" fontSize="small">
             {item.message}
           </Text>
         </Box>
+        {/* 댓글 존재 시, 댓글 영역 */}
         {haveReply && (
           <Box pt="2">
             <Divider />
@@ -70,6 +81,7 @@ const MessageItem = function ({ uid, displayName, photoURL, isOwner, item, onSen
             </Box>
           </Box>
         )}
+        {/* 댓글 부재 + 작성자가 관리자인 경우, 댓글 작성 영역 */}
         {haveReply === false && isOwner && (
           <Box pt="2">
             <Divider />

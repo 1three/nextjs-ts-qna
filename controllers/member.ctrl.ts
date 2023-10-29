@@ -26,20 +26,31 @@ async function add(req: NextApiRequest, res: NextApiResponse) {
   return res.status(500).json(addResult);
 }
 
+/**
+ * 사용자의 screenName을 기반으로 사용자 정보를 조회하는 API Handler
+ */
 async function findByScreenName(req: NextApiRequest, res: NextApiResponse) {
   const { screenName } = req.query;
+
+  // screenName이 누락된 경우 400 에러 반환
   if (screenName === undefined || screenName === null) {
     throw new BadReqError('screenName이 누락되었습니다.');
   }
 
+  // 배열 형태의 screenName을 문자열로 추출
   const extractScreenName = Array.isArray(screenName) ? screenName[0] : screenName;
+
+  // MemberModel의 findByScreenName 함수를 사용하여 사용자 정보 조회
   const findResult = await MemberModel.findByScreenName(extractScreenName);
+
+  // 조회 결과에 따라 적절한 응답 반환
   if (findResult === null) {
     return res.status(400).end();
   }
   res.status(200).json(findResult);
 }
 
+// MemberCtrl 객체에 API Handler 함수들을 담은 객체
 const MemberCtrl = {
   add,
   findByScreenName,
