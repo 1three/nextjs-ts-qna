@@ -12,9 +12,10 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { GetServerSideProps, NextPage } from 'next';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import ResizeTextArea from 'react-textarea-autosize';
 import axios, { AxiosResponse } from 'axios';
+import { useQuery } from 'react-query';
 import { ServiceLayout } from '@/components/service_layout';
 import { useAuth } from '@/context/auth_user.context';
 import { InAuthUser } from '@/models/in_auth_user';
@@ -69,32 +70,13 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
   // 익명 여부를 나타내는 상태
   const [anonymous, setAnonymous] = useState(true);
   const [page, setPage] = useState(1);
-  const [totalPage, setTotalPage] = useState(1);
+  const [totalPage, setTotalPages] = useState(1);
   const [messageList, setMessageList] = useState<InMessage[]>([]);
   const [messageListFetchTrigger, setMessageListFetchTrigger] = useState(false);
   // Chakra UI의 Toast 컴포넌트 사용을 위한 훅
   const toast = useToast();
   // 사용자 인증 정보를 가져오는 컨텍스트 훅
   const { authUser } = useAuth();
-
-  async function fetchMessageList(uid: string) {
-    try {
-      const resp = await fetch(`/api/messages.list?uid=${uid}&page=${page}&size=10`);
-      if (resp.status === 200) {
-        const data: {
-          totalElements: number;
-          totalPages: number;
-          page: number;
-          size: number;
-          content: InMessage[];
-        } = await resp.json();
-        setTotalPage(data.totalPages);
-        setMessageList((prev) => [...prev, ...data.content]);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  }
 
   async function fetchMessageInfo({ uid, messageId }: { uid: string; messageId: string }) {
     try {
@@ -116,10 +98,30 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
     }
   }
 
-  useEffect(() => {
-    if (userInfo === null) return;
-    fetchMessageList(userInfo.uid);
-  }, [userInfo, messageListFetchTrigger, page]);
+  const messageListQueryKey = ['messageList', userInfo?.uid, page, messageListFetchTrigger];
+  useQuery(
+    messageListQueryKey,
+    async () =>
+      axios.get<{
+        totalElements: number;
+        totalPages: number;
+        page: number;
+        size: number;
+        content: InMessage[];
+      }>(`/api/messages.list?uid=${userInfo?.uid}&page=${page}&size=10`),
+    {
+      keepPreviousData: true,
+      refetchOnWindowFocus: false,
+      onSuccess: (data) => {
+        setTotalPages(data.data.totalPages);
+        if (page === 1) {
+          setMessageList([...data.data.content]);
+          return;
+        }
+        setMessageList((prev) => [...prev, ...data.data.content]);
+      },
+    },
+  );
 
   if (userInfo === null) {
     return <p>사용자를 찾을 수 없습니다.</p>;
@@ -207,7 +209,10 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
                   toast({ title: '메시지 등록을 실패하였습니다.', position: 'top-right' });
                 }
                 setMessage('');
-                setMessageListFetchTrigger((prev) => !prev);
+                setPage(1);
+                setTimeout(() => {
+                  setMessageListFetchTrigger((prev) => !prev);
+                }, 50);
               }}
             >
               등록
