@@ -31,7 +31,7 @@ function convertDateToString(dateString: string): string {
     return `${minutes}분`;
   }
   if (years === 0 && months === 0 && days === 0 && hours) {
-    return `${hours}시`;
+    return `${hours}시간`;
   }
   if (years === 0 && months === 0 && days) {
     return `${days}일`;

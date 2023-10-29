@@ -1,5 +1,6 @@
 import { Avatar, Box, Button, Divider, Flex, Text, Textarea } from '@chakra-ui/react';
 import ResizeTextArea from 'react-textarea-autosize';
+import { useState } from 'react';
 import { InMessage } from '@/models/message/in_message';
 import convertDateToString from '@/utils/convert_date_to_string';
 
@@ -9,11 +10,23 @@ interface Props {
   photoURL: string;
   isOwner: boolean;
   item: InMessage;
+  onSendComplete: () => void;
 }
 
-const MessageItem = function ({ displayName, photoURL, isOwner, item }: Props) {
+const MessageItem = function ({ uid, displayName, photoURL, isOwner, item, onSendComplete }: Props) {
+  const [reply, setReply] = useState('');
   const haveReply = item.reply !== undefined;
 
+  async function postReply() {
+    const resp = await fetch('/api/messages.add.reply', {
+      method: 'POST',
+      headers: { 'Content-type': 'application/json' },
+      body: JSON.stringify({ uid, messageId: item.id, reply }),
+    });
+    if (resp.status < 300) {
+      onSendComplete();
+    }
+  }
   return (
     <Box borderRadius="md" width="full" bg="white" boxShadow="md">
       <Box>
@@ -22,7 +35,7 @@ const MessageItem = function ({ displayName, photoURL, isOwner, item }: Props) {
             size="xs"
             src={item.author ? item.author.photoURL ?? 'https://bit.ly/broken-link' : 'https://bit.ly/broken-link'}
           />
-          <Text fontSize="x-small" ml="1">
+          <Text fontSize="small" ml="1" pl="1">
             {item.author ? item.author.displayName : 'Annonymous'}
           </Text>
           <Text whiteSpace="pre-line" fontSize="xx-small" color="gray.500" ml="1">
@@ -31,8 +44,8 @@ const MessageItem = function ({ displayName, photoURL, isOwner, item }: Props) {
         </Flex>
       </Box>
       <Box p="2">
-        <Box borderRadius="md" borderWidth="1px" p="2">
-          <Text whiteSpace="pre-line" fontSize="sm">
+        <Box borderRadius="md" borderWidth="1px" p="3">
+          <Text whiteSpace="pre-line" fontSize="small">
             {item.message}
           </Text>
         </Box>
@@ -43,11 +56,9 @@ const MessageItem = function ({ displayName, photoURL, isOwner, item }: Props) {
               <Box pt="2">
                 <Avatar size="xs" src={photoURL} mr="2" />
               </Box>
-              <Box borderRadius="md" px="3" py="2" width="full" bg="gray.100">
+              <Box borderRadius="md" px="3.5" py="2.5" width="full" bg="gray.100">
                 <Flex alignItems="center">
-                  <Text fontSize="xs" fontWeight="semibold">
-                    {displayName}
-                  </Text>
+                  <Text fontSize="small">{displayName}</Text>
                   <Text whiteSpace="pre-line" fontSize="xx-small" color="gray" ml="1">
                     {convertDateToString(item.replyAt!)} 전
                   </Text>
@@ -76,9 +87,14 @@ const MessageItem = function ({ displayName, photoURL, isOwner, item }: Props) {
                   fontSize="xs"
                   placeholder="댓글을 입력하세요"
                   as={ResizeTextArea}
+                  value={reply}
+                  onChange={(e) => {
+                    setReply(e.currentTarget.value);
+                  }}
                 />
               </Box>
               <Button
+                disabled={reply.length === 0}
                 bgColor="#FF75B5"
                 color="white"
                 colorScheme="yellow"
@@ -86,6 +102,9 @@ const MessageItem = function ({ displayName, photoURL, isOwner, item }: Props) {
                 size="sm"
                 p="4"
                 fontSize="xs"
+                onClick={() => {
+                  postReply();
+                }}
               >
                 등록
               </Button>

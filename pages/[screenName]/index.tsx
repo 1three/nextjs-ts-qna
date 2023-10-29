@@ -12,13 +12,14 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { GetServerSideProps, NextPage } from 'next';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ResizeTextArea from 'react-textarea-autosize';
 import axios, { AxiosResponse } from 'axios';
 import { ServiceLayout } from '@/components/service_layout';
 import { useAuth } from '@/context/auth_user.context';
 import { InAuthUser } from '@/models/in_auth_user';
 import MessageItem from '@/components/message_item';
+import { InMessage } from '@/models/message/in_message';
 
 interface Props {
   userInfo: InAuthUser | null;
@@ -67,18 +68,68 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
   const [message, setMessage] = useState('');
   // 익명 여부를 나타내는 상태
   const [anonymous, setAnonymous] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPage, setTotalPage] = useState(1);
+  const [messageList, setMessageList] = useState<InMessage[]>([]);
+  const [messageListFetchTrigger, setMessageListFetchTrigger] = useState(false);
   // Chakra UI의 Toast 컴포넌트 사용을 위한 훅
   const toast = useToast();
   // 사용자 인증 정보를 가져오는 컨텍스트 훅
   const { authUser } = useAuth();
 
+  async function fetchMessageList(uid: string) {
+    try {
+      const resp = await fetch(`/api/messages.list?uid=${uid}&page=${page}&size=10`);
+      if (resp.status === 200) {
+        const data: {
+          totalElements: number;
+          totalPages: number;
+          page: number;
+          size: number;
+          content: InMessage[];
+        } = await resp.json();
+        setTotalPage(data.totalPages);
+        setMessageList((prev) => [...prev, ...data.content]);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function fetchMessageInfo({ uid, messageId }: { uid: string; messageId: string }) {
+    try {
+      const resp = await fetch(`/api/messages.info?uid=${uid}&messageId=${messageId}`);
+      if (resp.status === 200) {
+        const data = await resp.json();
+        setMessageList((prev) => {
+          const findIndex = prev.findIndex((fv) => fv.id === data.id);
+          if (findIndex >= 0) {
+            const updateArr = [...prev];
+            updateArr[findIndex] = data;
+            return updateArr;
+          }
+          return prev;
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  useEffect(() => {
+    if (userInfo === null) return;
+    fetchMessageList(userInfo.uid);
+  }, [userInfo, messageListFetchTrigger, page]);
+
   if (userInfo === null) {
     return <p>사용자를 찾을 수 없습니다.</p>;
   }
 
+  const isOwner = authUser !== null && authUser.uid === userInfo.uid;
+
   return (
     <ServiceLayout title={`${userInfo.displayName}'s Home`} minH="100vh" bg="gray.100">
-      <Box maxW="md" mx="auto" pt="6">
+      <Box maxW="md" mx="auto" pt="6" pb="2">
         {/* 유저 정보 영역 */}
         <Box borderWidth="1px" borderRadius="lg" overflow="hidden" mb="2" bg="white">
           <Flex p="6">
@@ -89,7 +140,6 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
             </Flex>
           </Flex>
         </Box>
-
         {/* 질문 작성 영역 */}
         <Box borderWidth="1px" borderRadius="lg" overflow="hidden" mb="2" bg="white">
           <Flex align="center" padding="2">
@@ -157,6 +207,7 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
                   toast({ title: '메시지 등록을 실패하였습니다.', position: 'top-right' });
                 }
                 setMessage('');
+                setMessageListFetchTrigger((prev) => !prev);
               }}
             >
               등록
@@ -183,31 +234,30 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
           </FormControl>
         </Box>
         <VStack spacing="12px" mt="6">
-          <MessageItem
-            uid="test"
-            photoURL={authUser?.photoURL ?? ''}
-            displayName="김한슬"
-            isOwner={false}
-            item={{
-              id: 'test',
-              message: '#Shhh 이름이 너무 귀여워요',
-              createAt: '2023-06-15T20:15:55',
-              reply: '저도 그렇게 생각해요ㅋㅋㅋㅋㅋ',
-              replyAt: '2023-02-15T20:15:55',
-            }}
-          />
-          <MessageItem
-            uid="test"
-            photoURL={authUser?.photoURL ?? ''}
-            displayName="test"
-            isOwner
-            item={{
-              id: 'test',
-              message: '#Shhh 이름이 너무 귀여워요',
-              createAt: '2023-04-15T20:15:55',
-            }}
-          />
+          {messageList.map((messageData) => (
+            <MessageItem
+              key={`message-item-${userInfo.uid}-${messageData.id}`}
+              item={messageData}
+              uid={userInfo.uid}
+              displayName={userInfo.displayName ?? ''}
+              photoURL={userInfo.photoURL ?? 'https://bit.ly/broken-link'}
+              isOwner={isOwner}
+              onSendComplete={() => fetchMessageInfo({ uid: userInfo.uid, messageId: messageData.id })}
+            />
+          ))}
         </VStack>
+        {totalPage > page && (
+          <Button
+            width="full"
+            mt="2"
+            fontSize="sm"
+            onClick={() => {
+              setPage((p) => p + 1);
+            }}
+          >
+            더보기
+          </Button>
+        )}
       </Box>
     </ServiceLayout>
   );
