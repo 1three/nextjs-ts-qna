@@ -76,6 +76,47 @@ async function post({
 }
 
 /**
+ * 메시지 업데이트(차단/차단 해제)를 위한 비동기 함수
+ *
+ * @param {string} uid - 사용자 식별자
+ * @param {string} messageId - 메시지 식별자
+ * @param {boolean} deny - 거부 여부
+ * @returns {Promise<InMessageServer>} - 업데이트된 메시지 데이터
+ * @throws {CustomServerError} - 커스텀 서버 에러 (사용자 또는 게시글이 존재하지 않을 경우)
+ */
+async function updateMessage({ uid, messageId, deny }: { uid: string; messageId: string; deny: boolean }) {
+  const memberRef = Firestore.collection(MEMBER_COL).doc(uid);
+  const messageRef = Firestore.collection(MEMBER_COL).doc(uid).collection(MSG_COL).doc(messageId);
+
+  const result = await Firestore.runTransaction(async (transaction) => {
+    const memberDoc = await transaction.get(memberRef);
+    const messageDoc = await transaction.get(messageRef);
+    if (memberDoc.exists === false) {
+      throw new CustomServerError({ statusCode: 400, message: '존재하지 않는 사용자입니다.' });
+    }
+    if (messageDoc.exists === false) {
+      throw new CustomServerError({ statusCode: 400, message: '존재하지 않는 게시글' });
+    }
+
+    // 메시지 문서 업데이트
+    await transaction.update(messageRef, { deny });
+
+    // 업데이트된 메시지 데이터 매핑
+    const messageData = messageDoc.data() as InMessageServer;
+
+    // 데이터 매핑 및 반환
+    return {
+      ...messageData,
+      id: messageId,
+      deny,
+      createAt: messageData.createAt.toDate().toISOString(),
+      replyAt: messageData.replyAt ? messageData.replyAt.toDate().toISOString() : undefined,
+    };
+  });
+  return result;
+}
+
+/**
  * 사용자가 작성한 메시지 목록을 가져오는 함수
  *
  * @param {Object} param0 - 사용자 고유 식별자
@@ -155,9 +196,11 @@ async function listWithPage({ uid, page = 1, size = 10 }: { uid: string; page?: 
     // 데이터 매핑 및 반환
     const data = messageColDoc.docs.map((mv) => {
       const docData = mv.data() as Omit<InMessageServer, 'id'>;
+      const isDeny = docData.deny !== undefined && docData.deny === true;
       const returnData = {
         ...docData,
         id: mv.id,
+        message: isDeny ? '비공개 처리된 메시지 입니다.' : docData.message,
         createAt: docData.createAt.toDate().toISOString(),
         replyAt: docData.replyAt ? docData.replyAt.toDate().toISOString() : undefined,
       } as InMessage;
@@ -197,10 +240,11 @@ async function get({ uid, messageId }: { uid: string; messageId: string }) {
     }
 
     const messageData = messageDoc.data() as InMessageServer;
-
+    const isDeny = messageData.deny !== undefined && messageData.deny === true;
     // 데이터 매핑 및 반환
     return {
       ...messageData,
+      message: isDeny ? '비공개 처리된 메시지 입니다.' : messageData.message,
       id: messageId,
       createAt: messageData.createAt.toDate().toISOString(),
       replyAt: messageData.replyAt ? messageData.replyAt.toDate().toISOString() : undefined,
@@ -243,6 +287,7 @@ async function postReply({ uid, messageId, reply }: { uid: string; messageId: st
 
 const MessageModel = {
   post,
+  updateMessage,
   list,
   listWithPage,
   get,
