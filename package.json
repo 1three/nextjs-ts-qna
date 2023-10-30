@@ -8,13 +8,14 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@chakra-ui/react": "1.8",
+    "@chakra-ui/icons": "^1.1.1",
+    "@chakra-ui/react": "^1.7.3",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "axios": "^1.6.0",
     "firebase": "^10.4.0",
     "firebase-admin": "^11.11.0",
-    "framer-motion": "^10.16.4",
+    "framer-motion": "^5",
     "moment": "^2.29.4",
     "next": "12.0.7",
     "react": "17.0.2",

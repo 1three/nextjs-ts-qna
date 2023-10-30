@@ -24,6 +24,7 @@ import { InMessage } from '@/models/message/in_message';
 
 interface Props {
   userInfo: InAuthUser | null;
+  screenName: string;
 }
 
 /**
@@ -81,7 +82,7 @@ async function postMessage({
 /**
  * 사용자 홈 페이지 컴포넌트
  */
-const UserHomePage: NextPage<Props> = function ({ userInfo }) {
+const UserHomePage: NextPage<Props> = function ({ userInfo, screenName }) {
   // 사용자 질문 저장하는 상태
   const [message, setMessage] = useState('');
   // 익명 여부를 나타내는 상태
@@ -171,7 +172,7 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
   const isOwner = authUser !== null && authUser.uid === userInfo.uid;
 
   return (
-    <ServiceLayout title={`${userInfo.displayName}'s Home`} minH="100vh" bg="gray.100">
+    <ServiceLayout title={`${userInfo.displayName}의 홈`} minH="100vh" bg="gray.100">
       <Box maxW="md" mx="auto" pt="6" pb="2">
         {/* 유저 정보 영역 */}
         <Box borderWidth="1px" borderRadius="lg" overflow="hidden" mb="2" bg="white">
@@ -286,6 +287,7 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
               key={`message-item-${userInfo.uid}-${messageData.id}`}
               item={messageData}
               uid={userInfo.uid}
+              screenName={screenName}
               displayName={userInfo.displayName ?? ''}
               photoURL={userInfo.photoURL ?? 'https://bit.ly/broken-link'}
               isOwner={isOwner}
@@ -318,14 +320,17 @@ const UserHomePage: NextPage<Props> = function ({ userInfo }) {
  */
 export const getServerSideProps: GetServerSideProps<Props> = async ({ query }) => {
   const { screenName } = query;
-
   if (screenName === undefined) {
     return {
       props: {
         userInfo: null,
+        screenName: '',
       },
     };
   }
+
+  const screenNameToStr = Array.isArray(screenName) ? screenName[0] : screenName;
+
   try {
     const protocol = process.env.PROTOCOL || 'http';
     const host = process.env.HOST || 'localhost';
@@ -333,11 +338,10 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ query }) =
     const baseUrl = `${protocol}://${host}:${port}`;
     const userInfoResp: AxiosResponse<InAuthUser> = await axios(`${baseUrl}/api/user.info/${screenName}`);
 
-    console.info(userInfoResp.data);
-
     return {
       props: {
         userInfo: userInfoResp.data ?? null,
+        screenName: screenNameToStr,
       },
     };
   } catch (err) {
@@ -345,6 +349,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ query }) =
     return {
       props: {
         userInfo: null,
+        screenName: '',
       },
     };
   }

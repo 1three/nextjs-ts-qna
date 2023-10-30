@@ -1,13 +1,31 @@
-import { Avatar, Box, Button, Divider, Flex, Text, Textarea } from '@chakra-ui/react';
+import {
+  Avatar,
+  Box,
+  Button,
+  Divider,
+  Flex,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Spacer,
+  Text,
+  Textarea,
+  useToast,
+} from '@chakra-ui/react';
 import ResizeTextArea from 'react-textarea-autosize';
 import { useState } from 'react';
 import { InMessage } from '@/models/message/in_message';
 import convertDateToString from '@/utils/convert_date_to_string';
+import MoreBtnIcon from './more_btn_icon';
+import FirebaseClient from '@/models/firebase_client';
 
 // MessageItem 컴포넌트의 속성을 정의하는 인터페이스
 interface Props {
   uid: string;
   displayName: string;
+  screenName: string;
   photoURL: string;
   isOwner: boolean;
   item: InMessage;
@@ -15,11 +33,11 @@ interface Props {
 }
 
 // 각 메시지 아이템을 렌더링하는 컴포넌트
-const MessageItem = function ({ uid, displayName, photoURL, isOwner, item, onSendComplete }: Props) {
+const MessageItem = function ({ uid, displayName, screenName, photoURL, isOwner, item, onSendComplete }: Props) {
+  // toast
+  const toast = useToast();
   // 댓글 작성 상태 관리하는 상태 변수
   const [reply, setReply] = useState('');
-  // 댓글 유무 확인
-  const haveReply = item.reply !== undefined;
 
   // 댓글 등록 함수
   async function postReply() {
@@ -35,11 +53,36 @@ const MessageItem = function ({ uid, displayName, photoURL, isOwner, item, onSen
     }
   }
 
+  async function updateMessage({ deny }: { deny: boolean }) {
+    const token = await FirebaseClient.getInstance().Auth.currentUser?.getIdToken();
+    if (token === undefined) {
+      toast({
+        title: '로그인한 사용자만 사용할 수 있는 메뉴입니다.',
+      });
+      return;
+    }
+
+    const resp = await fetch('/api/messages.deny', {
+      method: 'PUT',
+      headers: { 'Content-type': 'application/json', authorization: token },
+      body: JSON.stringify({ uid, messageId: item.id, deny }),
+    });
+
+    // 응답 성공 시, 부모 컴포넌트에 등록 완료 알림
+    if (resp.status < 300) {
+      onSendComplete();
+    }
+  }
+  // 댓글 유무 확인
+  const haveReply = item.reply !== undefined;
+  // 메시지 거절 여부 확인
+  const isDeny = item.deny !== undefined ? item.deny === true : false;
+
   return (
     <Box borderRadius="md" width="full" bg="white" boxShadow="md">
       {/* 메시지 작성자 정보 영역 */}
       <Box>
-        <Flex pl="2" pt="2" alignItems="center">
+        <Flex px="2" pt="2" alignItems="center">
           <Avatar
             size="xs"
             src={item.author ? item.author.photoURL ?? 'https://bit.ly/broken-link' : 'https://bit.ly/broken-link'}
@@ -50,6 +93,39 @@ const MessageItem = function ({ uid, displayName, photoURL, isOwner, item, onSen
           <Text whiteSpace="pre-line" fontSize="xx-small" color="gray.500" ml="1">
             {convertDateToString(item.createAt)} 전
           </Text>
+          <Spacer />
+          {isOwner && (
+            <Menu>
+              <MenuButton
+                as={IconButton}
+                icon={<MoreBtnIcon />}
+                width="24px"
+                height="24px"
+                BORDERRADIUS="full"
+                variant="link"
+                size="xs"
+                alignItems="center"
+              />
+              <MenuList>
+                <MenuItem
+                  fontSize="xs"
+                  onClick={() => {
+                    updateMessage({ deny: item.deny !== undefined ? !item.deny : true });
+                  }}
+                >
+                  {isDeny ? '비공개 처리 해제' : '비공개 처리'}
+                </MenuItem>
+                <MenuItem
+                  fontSize="xs"
+                  onClick={() => {
+                    window.location.href = `/${screenName}/${item.id}`;
+                  }}
+                >
+                  상세 메시지 보기
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          )}
         </Flex>
       </Box>
       <Box p="2">
