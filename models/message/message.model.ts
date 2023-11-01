@@ -7,7 +7,6 @@ import { InAuthUser } from '../in_auth_user';
 // Firestore 컬렉션 명칭
 const MEMBER_COL = 'members';
 const MSG_COL = 'messages';
-const SCR_NAME_COL = 'screen_names';
 
 // FirebaseAdmin에서 Firestore 객체 가져오기
 const { Firestore } = FirebaseAdmin.getInstance();

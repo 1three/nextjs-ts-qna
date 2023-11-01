@@ -1,10 +1,15 @@
-import { Box, Button, Flex, Spacer } from '@chakra-ui/react';
+import { Avatar, Box, Button, Flex, IconButton, Menu, MenuButton, MenuItem, MenuList, Spacer } from '@chakra-ui/react';
 import { useAuth } from '@/context/auth_user.context';
 
 // GNB (Global Navigation Bar) 컴포넌트
-const GNB = function () {
+const GNB: React.FC = function () {
   // useAuth 훅을 사용하여 사용자 인증 정보 가져오기
   const { loading, authUser, signOut, signInWithGoogle } = useAuth();
+
+  // screenName 찾기
+  const userEmail = authUser?.email;
+  const findEmail = userEmail?.lastIndexOf('@');
+  const screenName = findEmail !== undefined && findEmail !== -1 ? userEmail?.substring(0, findEmail) : undefined;
 
   // 로그인 버튼
   const logInBtn = (
@@ -22,11 +27,28 @@ const GNB = function () {
     </Button>
   );
 
-  // 로그아웃 버튼
+  // 로그아웃 메뉴
   const logOutBtn = (
-    <Button as="a" fontSize="sm" fontWeight={400} borderRadius={20} width="80px" onClick={signOut}>
-      로그아웃
-    </Button>
+    <Menu>
+      <MenuButton
+        as={IconButton}
+        icon={<Avatar size="sm" src={authUser?.photoURL ?? 'https://bit.ly/broken-link'} />}
+        borderRadius="full"
+      />
+      <MenuList>
+        <MenuItem
+          fontSize="xs"
+          onClick={() => {
+            window.location.href = `/${screenName ?? ''}`;
+          }}
+        >
+          내 홈으로 이동
+        </MenuItem>
+        <MenuItem fontSize="xs" onClick={signOut}>
+          로그아웃
+        </MenuItem>
+      </MenuList>
+    </Menu>
   );
 
   // 사용자 인증 정보 초기화 여부

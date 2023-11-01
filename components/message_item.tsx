@@ -53,26 +53,35 @@ const MessageItem = function ({ uid, displayName, screenName, photoURL, isOwner,
     }
   }
 
+  // 메시지 거절 함수
   async function updateMessage({ deny }: { deny: boolean }) {
-    const token = await FirebaseClient.getInstance().Auth.currentUser?.getIdToken();
-    if (token === undefined) {
+    try {
+      const token = await FirebaseClient.getInstance().Auth.currentUser?.getIdToken();
+      if (token === undefined) {
+        toast({
+          title: '로그인한 사용자만 사용할 수 있는 메뉴입니다.',
+        });
+        return;
+      }
+
+      const resp = await fetch('/api/messages.deny', {
+        method: 'PUT',
+        headers: { 'Content-type': 'application/json', authorization: token },
+        body: JSON.stringify({ uid, messageId: item.id, deny }),
+      });
+
+      // 응답 성공 시, 부모 컴포넌트에 등록 완료 알림
+      if (resp.status < 300) {
+        onSendComplete();
+      }
+    } catch (err) {
+      console.log(err);
       toast({
         title: '로그인한 사용자만 사용할 수 있는 메뉴입니다.',
       });
-      return;
-    }
-
-    const resp = await fetch('/api/messages.deny', {
-      method: 'PUT',
-      headers: { 'Content-type': 'application/json', authorization: token },
-      body: JSON.stringify({ uid, messageId: item.id, deny }),
-    });
-
-    // 응답 성공 시, 부모 컴포넌트에 등록 완료 알림
-    if (resp.status < 300) {
-      onSendComplete();
     }
   }
+
   // 댓글 유무 확인
   const haveReply = item.reply !== undefined;
   // 메시지 거절 여부 확인
