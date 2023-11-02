@@ -24,8 +24,9 @@ export default function useFirebaseAuth() {
       const signInResult = await signInWithPopup(FirebaseClient.getInstance().Auth, provider);
       // 로그인 성공 시
       if (signInResult.user) {
-        console.info(signInResult.user);
-        const resp = await fetch('/api/member.add', {
+        // console.info(signInResult.user);
+        // const resp =
+        await fetch('/api/member.add', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -37,10 +38,10 @@ export default function useFirebaseAuth() {
             photoURL: signInResult.user.photoURL,
           }),
         });
-        console.info({ status: resp.status });
+        // console.info({ status: resp.status });
 
-        const respData = await resp.json();
-        console.info(respData);
+        // const respData = await resp.json();
+        // console.info(respData);
       }
     } catch (err) {
       // 로그인 실패 시

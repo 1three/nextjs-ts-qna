@@ -26,13 +26,13 @@ export default class FirebaseClient {
     const apps = getApps();
     if (apps.length === 0) {
       // Firebase 앱이 초기화되지 않은 경우, FirebaseCredentials를 사용하여 앱 초기화
-      console.info('firebase client init start');
+      // console.info('firebase client init start');
       initializeApp(FirebaseCredentials);
     }
 
     // Firebase Auth 인스턴스 초기화
     this.auth = getAuth();
-    console.info('firebase auth');
+    // console.info('firebase auth');
   }
 
   // FirebaseClient의 인스턴스를 반환하는 정적 메서드
