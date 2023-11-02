@@ -6,8 +6,7 @@ import { useAuth } from '@/context/auth_user.context';
 
 const IndexPage: NextPage = function () {
   // useAuth 훅을 사용하여 로그인 상태 및 관련 함수를 가져옴
-  const { signInWithGoogle, authUser } = useAuth();
-  console.info(authUser);
+  const { signInWithGoogle } = useAuth();
 
   return (
     <ServiceLayout title="Shhh" minH="100vh" bg="gray.100">

@@ -110,7 +110,7 @@ const MessageItem = function ({ uid, displayName, screenName, photoURL, isOwner,
                 icon={<MoreBtnIcon />}
                 width="24px"
                 height="24px"
-                BORDERRADIUS="full"
+                borderRadius="full"
                 variant="link"
                 size="xs"
                 alignItems="center"
@@ -194,7 +194,7 @@ const MessageItem = function ({ uid, displayName, screenName, photoURL, isOwner,
                 disabled={reply.length === 0}
                 bgColor="#FF75B5"
                 color="white"
-                colorScheme="yellow"
+                colorScheme="pink"
                 variant="solid"
                 size="sm"
                 p="4"
