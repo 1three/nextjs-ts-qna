@@ -50,7 +50,7 @@ export default class FirebaseAdmin {
 
     // Firebase 앱을 초기화하고 환경을 설정
     admin.initializeApp({ credential: admin.credential.cert(config.credential) });
-    console.info('bootstrap firebase admin');
+    // console.info('bootstrap firebase admin');
   }
 
   /** Firestore 인스턴스를 반환하는 메서드 */
