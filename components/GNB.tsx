@@ -62,8 +62,13 @@ const GNB: React.FC = function () {
         {/* 좌측 여백 */}
         <Spacer />
         {/* 로고 영역 */}
-        <Box flex="1">
-          <img style={{ height: '40px' }} src="/logo.svg" alt="logo" />
+        <Box
+          flex="1"
+          onClick={() => {
+            window.location.href = '/';
+          }}
+        >
+          <img style={{ height: '40px', cursor: 'pointer' }} src="/logo.svg" alt="logo" />
         </Box>
         {/* 로그인 또는 로그아웃 버튼 */}
         <Box justifyContent="flex-end">{authInitialized ? logInBtn : logOutBtn}</Box>
