@@ -173,7 +173,7 @@ const UserHomePage: NextPage<Props> = function ({ userInfo, screenName }) {
 
   return (
     <ServiceLayout title={`${userInfo.displayName}의 홈`} minH="100vh" bg="gray.100">
-      <Box maxW="md" mx="auto" pt="6" pb="2">
+      <Box maxW="md" mx="auto" pt="6" pb="4">
         {/* 유저 정보 영역 */}
         <Box borderWidth="1px" borderRadius="lg" overflow="hidden" mb="2" bg="white">
           <Flex p="6">
@@ -221,9 +221,9 @@ const UserHomePage: NextPage<Props> = function ({ userInfo, screenName }) {
             />
             <Button
               disabled={message.length === 0}
-              bgColor="#FFB86C"
+              bgColor="#6BA5FF"
               color="white"
-              colorScheme="yellow"
+              colorScheme="blue"
               variant="solid"
               size="sm"
               p="4"
@@ -264,7 +264,7 @@ const UserHomePage: NextPage<Props> = function ({ userInfo, screenName }) {
           <FormControl display="flex" alignItems="center" mt="1" mx="2" pb="2">
             <Switch
               size="sm"
-              colorScheme="orange"
+              colorScheme="blue"
               id="anonymous"
               mr="1"
               isChecked={anonymous}
@@ -298,8 +298,9 @@ const UserHomePage: NextPage<Props> = function ({ userInfo, screenName }) {
         {totalPages > page && (
           <Button
             width="full"
-            mt="2"
+            mt="4"
             fontSize="sm"
+            fontWeight="normal"
             onClick={() => {
               setPage((p) => p + 1);
             }}
