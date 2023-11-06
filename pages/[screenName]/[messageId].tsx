@@ -53,7 +53,7 @@ const MessagePage: NextPage<Props> = function ({ userInfo, messageData: initMsgD
         <Link href={`/${screenName}`}>
           <a>
             <Button mb="2" fontSize="xs" fontWeight="normal" bg="white" opacity="" leftIcon={<ChevronLeftIcon />}>
-              {screenName} 홈으로
+              내 홈으로 돌아가기
             </Button>
           </a>
         </Link>

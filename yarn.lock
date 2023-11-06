@@ -4316,6 +4316,11 @@ jws@^4.0.0:
     jwa "^2.0.0"
     safe-buffer "^5.0.1"
 
+kakao-sdk@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/kakao-sdk/-/kakao-sdk-3.1.0.tgz#0fd5cf2be39fb0de57254225d187de88266f3e65"
+  integrity sha512-hXKbmZX+QyuGzN+wsoslQqQYRHxehxz3CvcXwCBCePwMQkDNezHgFrn3AQOSYjyOBvhwciqqE88rAk664Ql2rw==
+
 klaw@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/klaw/-/klaw-3.0.0.tgz#b11bec9cf2492f06756d6e809ab73a2910259146"

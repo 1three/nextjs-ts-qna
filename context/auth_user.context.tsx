@@ -9,6 +9,7 @@ interface InAuthUserContext {
   authUser: InAuthUser | null; // 로그인 사용자 정보
   loading: boolean; // 로그인 상태 확인 여부
   signInWithGoogle: () => void; // 구글 로그인 함수
+  signInWithGitHub: () => void; // 깃허브 로그인 함수
   signOut: () => void; // 로그아웃 함수
 }
 
@@ -19,6 +20,7 @@ const AuthUserContext = createContext<InAuthUserContext>({
   authUser: null,
   loading: true,
   signInWithGoogle: async () => ({ user: null, credential: null }),
+  signInWithGitHub: async () => ({ user: null, credential: null }),
   signOut: () => {},
 });
 
