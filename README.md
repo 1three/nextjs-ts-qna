@@ -2,7 +2,7 @@
 
 [NextJS, TS] `Next.js`와 `TypeScript`를 활용한 익명 질문 서비스
 
-**_Shhh_** 사이트에 방문하기 →  _[#Shhh](https://shhh-three.vercel.app/1soelkim)_
+**_Shhh_** 사이트에 방문하기 →  _[#Shhh](https://shhh-three.vercel.app/)_
 
 ![shhh_영상](https://github.com/1three/nextjs-ts-qna/assets/94810322/412cb87e-ac5a-48fe-b8e0-c92aba04ed9c)
 
