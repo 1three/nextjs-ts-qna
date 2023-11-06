@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { GoogleAuthProvider, User, signInWithPopup } from 'firebase/auth';
+import { GithubAuthProvider, GoogleAuthProvider, User, signInWithPopup } from 'firebase/auth';
 import { InAuthUser } from '@/models/in_auth_user';
 import FirebaseClient from '@/models/firebase_client';
 
@@ -20,6 +20,40 @@ export default function useFirebaseAuth() {
    */
   async function signInWithGoogle(): Promise<void> {
     const provider = new GoogleAuthProvider();
+    try {
+      const signInResult = await signInWithPopup(FirebaseClient.getInstance().Auth, provider);
+      // 로그인 성공 시
+      if (signInResult.user) {
+        console.info('사용자 정보', signInResult.user);
+        const resp = await fetch('/api/member.add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            uid: signInResult.user.uid,
+            email: signInResult.user.email,
+            displayName: signInResult.user.displayName,
+            photoURL: signInResult.user.photoURL,
+          }),
+        });
+        console.info({ status: resp.status });
+
+        const respData = await resp.json();
+        console.info(respData);
+      }
+    } catch (err) {
+      // 로그인 실패 시
+      console.error('로그인 실패', err);
+    }
+  }
+  /**
+   * GitHub 로그인 함수
+   *
+   * @returns {Promise<void>} 로그인 결과를 처리하는 Promise
+   */
+  async function signInWithGitHub(): Promise<void> {
+    const provider = new GithubAuthProvider();
     try {
       const signInResult = await signInWithPopup(FirebaseClient.getInstance().Auth, provider);
       // 로그인 성공 시
@@ -48,6 +82,7 @@ export default function useFirebaseAuth() {
       console.error(err);
     }
   }
+
   /**
    * 사용자 정보 초기화 함수
    */
@@ -97,6 +132,7 @@ export default function useFirebaseAuth() {
     authUser,
     loading,
     signInWithGoogle,
+    signInWithGitHub,
     signOut,
   };
 }

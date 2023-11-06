@@ -16,7 +16,7 @@ type AddResult = { result: true; id: string } | { result: false; message: string
 async function add({ uid, email, displayName, photoURL }: InAuthUser): Promise<AddResult> {
   try {
     // Firestore 트랜잭션을 이용한 데이터 추가
-    const screenName = (email as string).replace('@gmail.com', '');
+    const screenName = (email as string).replace(/@.*/, '');
     const addResult = await FirebaseAdmin.getInstance().Firestore.runTransaction(async (transaction) => {
       // members 컬렉션의 해당 uid 문서 가져오기
       const memberRef = FirebaseAdmin.getInstance().Firestore.collection(MEMBER_COL).doc(uid);
